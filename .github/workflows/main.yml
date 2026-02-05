@@ -1,0 +1,24 @@
+name: Update Weather Data
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Τρέχει κάθε 1 ώρα
+  workflow_dispatch: # Σου επιτρέπει να το τρέξεις και χειροκίνητα
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run script
+        run: python kairos.py
