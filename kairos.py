@@ -1,25 +1,31 @@
-import requests
 
-# Η ΔΙΕΥΘΥΝΣΗ ΤΗΣ ΦΟΡΜΑΣ ΣΟΥ
-URL = "https://docs.google.com/forms/d/e/1FAIpQLSeVcHvv0c3pR53N5X8NP7sg2KY4hLxPAZXBHyhM1cxh4_KYbQ/formResponse"
+     import requests
 
-def update_weather():
-    # Ο ΚΑΙΡΟΣ ΓΙΑ ΤΟΝ ΓΗΛΟΦΟ
-    weather_url = "https://api.openweathermap.org/data/2.5/weather?lat=39.91&lon=21.81&appid=154abadcd6dbf332847ef2f672a9793c&units=metric"
+# ΡΥΘΜΙΣΕΙΣ ΓΗΛΟΦΟΥ (ΟΡΙΣΤΙΚΕΣ)
+API_KEY = "154abadcd6dbf332847ef2f672a9793c"
+LAT = "39.91"
+LON = "21.81"
+# Η ΝΕΑ ΦΟΡΜΑ ΠΟΥ ΔΟΥΛΕΥΕΙ
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfysH7ZjlCObq_M09Jzk7lSHYL3r_VVsTGNO3CDynHxiU6myw/formResponse"
+ENTRY_ID = "entry.170560205"
+
+def run():
+    w_url = f"https://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={API_KEY}&units=metric&lang=el"
     try:
-        res = requests.get(weather_url).json()
+        # Παίρνουμε τον καιρό
+        res = requests.get(w_url, timeout=10).json()
         temp = res['main']['temp']
-        keimeno = f"{temp} C"
+        desc = res['weather'][0]['description']
         
-        # Στέλνουμε τη θερμοκρασία στο Excel
-        data = {
-            "entry.1147714150": keimeno
-        }
+        # Φτιάχνουμε το μήνυμα
+        icon = "☀️" if "καθ" in desc.lower() or "αίθ" in desc.lower() else "☁️"
+        msg = f"{icon} {temp}°C | {desc.capitalize()}"
         
-        requests.post(URL, data=data)
-        print(f"Efyge h thermokrasia: {keimeno}")
-    except:
-        print("Sfalma sth lhpsh")
+        # Το στέλνουμε στη Google
+        requests.post(FORM_URL, data={ENTRY_ID: msg}, timeout=10)
+        print(f"✅ ΕΣΤΑΛΗ: {msg}")
+    except Exception as e:
+        print(f"❌ Σφάλμα: {e}")
 
 if __name__ == "__main__":
-    update_weather()
+    run()
