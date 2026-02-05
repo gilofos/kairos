@@ -6,7 +6,7 @@ API_KEY = "154abadcd6dbf332847ef2f672a9793c"
 LAT = "39.91"
 LON = "21.81"
 
-# Η ΦΟΡΜΑ ΠΟΥ ΣΥΝΔΕΕΤΑΙ ΜΕ ΤΟ SITE ΣΟΥ
+# Η ΦΟΡΜΑ ΠΟΥ ΣΥΝΔΕΕΤΑΙ ΜΕ ΤΟ SITE ΣΟΥ (Η σωστή που βρήκαμε)
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfysH7ZjlCObq_M09Jzk7lSHYL3r_VVsTGNO3CDynHxiU6myw/formResponse"
 ENTRY_ID = "entry.170560205"
 
@@ -19,7 +19,7 @@ def get_weather_icon(desc):
     return "🌡️"
 
 def run_update():
-    # 1. Παίρνουμε τον καιρό από το OpenWeather
+    # 1. Λήψη καιρού από OpenWeather
     url = f"https://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={API_KEY}&units=metric&lang=el"
     
     try:
@@ -30,10 +30,10 @@ def run_update():
             desc = data['weather'][0]['description']
             icon = get_weather_icon(desc)
             
-            # Φτιάχνουμε το μήνυμα: "☀️ 12.5°C | Αίθριος"
+            # Μήνυμα: "☀️ 12.5°C | Αίθριος"
             weather_msg = f"{icon} {temp}°C | {desc.capitalize()}"
             
-            # 2. Στέλνουμε στη Google Φόρμα
+            # 2. Αποστολή στη Google Φόρμα για να ενημερωθεί το site
             payload = {ENTRY_ID: weather_msg}
             post_r = requests.post(FORM_URL, data=payload, timeout=15)
             
