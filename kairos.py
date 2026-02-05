@@ -1,31 +1,50 @@
+import requests
+from datetime import datetime
 
-     import requests
-
-# ΡΥΘΜΙΣΕΙΣ ΓΗΛΟΦΟΥ (ΟΡΙΣΤΙΚΕΣ)
+# --- ΣΤΟΙΧΕΙΑ ΓΗΛΟΦΟΥ ---
 API_KEY = "154abadcd6dbf332847ef2f672a9793c"
 LAT = "39.91"
 LON = "21.81"
-# Η ΝΕΑ ΦΟΡΜΑ ΠΟΥ ΔΟΥΛΕΥΕΙ
+
+# Η ΦΟΡΜΑ ΠΟΥ ΣΥΝΔΕΕΤΑΙ ΜΕ ΤΟ SITE ΣΟΥ
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfysH7ZjlCObq_M09Jzk7lSHYL3r_VVsTGNO3CDynHxiU6myw/formResponse"
 ENTRY_ID = "entry.170560205"
 
-def run():
-    w_url = f"https://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={API_KEY}&units=metric&lang=el"
+def get_weather_icon(desc):
+    d = desc.lower()
+    if "καθαρός" in d or "αίθριος" in d: return "☀️"
+    if "συννεφιά" in d or "νέφη" in d: return "☁️"
+    if "βροχή" in d: return "🌧️"
+    if "χιόνι" in d: return "❄️"
+    return "🌡️"
+
+def run_update():
+    # 1. Παίρνουμε τον καιρό από το OpenWeather
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={API_KEY}&units=metric&lang=el"
+    
     try:
-        # Παίρνουμε τον καιρό
-        res = requests.get(w_url, timeout=10).json()
-        temp = res['main']['temp']
-        desc = res['weather'][0]['description']
-        
-        # Φτιάχνουμε το μήνυμα
-        icon = "☀️" if "καθ" in desc.lower() or "αίθ" in desc.lower() else "☁️"
-        msg = f"{icon} {temp}°C | {desc.capitalize()}"
-        
-        # Το στέλνουμε στη Google
-        requests.post(FORM_URL, data={ENTRY_ID: msg}, timeout=10)
-        print(f"✅ ΕΣΤΑΛΗ: {msg}")
+        r = requests.get(url, timeout=15)
+        if r.status_code == 200:
+            data = r.json()
+            temp = data['main']['temp']
+            desc = data['weather'][0]['description']
+            icon = get_weather_icon(desc)
+            
+            # Φτιάχνουμε το μήνυμα: "☀️ 12.5°C | Αίθριος"
+            weather_msg = f"{icon} {temp}°C | {desc.capitalize()}"
+            
+            # 2. Στέλνουμε στη Google Φόρμα
+            payload = {ENTRY_ID: weather_msg}
+            post_r = requests.post(FORM_URL, data=payload, timeout=15)
+            
+            if post_r.status_code == 200:
+                print(f"✅ ΕΠΙΤΥΧΙΑ: {weather_msg}")
+            else:
+                print(f"❌ Σφάλμα Google: {post_r.status_code}")
+        else:
+            print(f"❌ Σφάλμα Καιρού: {r.status_code}")
     except Exception as e:
-        print(f"❌ Σφάλμα: {e}")
+        print(f"❌ Σφάλμα σύνδεσης: {e}")
 
 if __name__ == "__main__":
-    run()
+    run_update()
